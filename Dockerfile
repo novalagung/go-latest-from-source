@@ -1,9 +1,9 @@
 # set base image for build
-FROM alpine:3 AS build
+FROM centos:8 AS build
 
 # install dependencies
-RUN apk update
-RUN apk add curl git
+RUN yum groupinstall -y 'Development Tools'
+RUN yum install -y curl git
 
 # install go toolchain
 WORKDIR /home 
@@ -15,11 +15,10 @@ RUN tar -zxf go1.4.3.linux-amd64.tar.gz && mv go ${GOROOT_BOOTSTRAP}
 WORKDIR /usr/local
 RUN git clone --progress --verbose --depth 1 https://go.googlesource.com/go
 WORKDIR /usr/local/go/src
-RUN ls ${GOROOT_BOOTSTRAP}/bin
-RUN sh all.bash
+RUN bash ./all.bash
 
 # set base image for implementation
-FROM alpine:3 AS implementation
+FROM centos:8 AS implementation
 
 # copy binary
 COPY --from=build /usr/local/go /usr/local/go
