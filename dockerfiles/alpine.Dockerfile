@@ -1,9 +1,9 @@
 # set base image for build
-FROM ubuntu:16.04
+FROM alpine:3 AS build
 
-# update packages
-RUN apt-get update
-RUN apt-get install -y build-essential curl git
+# install dependencies
+RUN apk update
+RUN apk add curl git
 
 # install go toolchain
 WORKDIR /home 
@@ -15,7 +15,14 @@ RUN tar -zxf go1.4.3.linux-amd64.tar.gz && mv go ${GOROOT_BOOTSTRAP}
 WORKDIR /usr/local
 RUN git clone --progress --verbose --depth 1 https://go.googlesource.com/go
 WORKDIR /usr/local/go/src
-RUN bash ./all.bash
+RUN ls ${GOROOT_BOOTSTRAP}/bin
+RUN sh all.bash
+
+# set base image for implementation
+FROM alpine:3 AS implementation
+
+# copy binary
+COPY --from=build /usr/local/go /usr/local/go
 ENV GOROOT=/usr/local/go
 ENV PATH=${GOROOT}/bin:${PATH}
 
